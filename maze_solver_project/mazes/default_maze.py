@@ -1,5 +1,3 @@
-# mazes/default_maze.py
-
 DEFAULT_MAZE = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],

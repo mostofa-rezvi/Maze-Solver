@@ -1,4 +1,3 @@
-# main.py
 from maze_solver import solve_maze_a_star, is_valid_move, DIRECTION_NAMES
 from visualization import visualize_maze
 from mazes.default_maze import DEFAULT_MAZE
@@ -50,13 +49,12 @@ def main():
         "Enter coordinates as 'row,col' (e.g., '1,1'). Type 'q' to quit at any prompt."
     )
 
-    # Display the maze for reference
     print("\nCurrent Maze Layout:")
     for r_idx, row in enumerate(maze):
         print(f"{r_idx:2d} {' '.join(map(str, row))}")
     print(
         "  " + " ".join([str(c_idx % 10) for c_idx in range(cols)])
-    )  # Column index helper
+    )
     print("-" * 30)
 
     start_point = None
