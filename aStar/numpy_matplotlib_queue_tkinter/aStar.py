@@ -6,35 +6,27 @@ from tkinter import messagebox
 from queue import PriorityQueue
 import random
 
-# Define directions and their corresponding coordinate changes
-# (row_change, col_change)
-# 0: North, 1: East, 2: South, 3: West
 DIRECTIONS = {
-    0: (-1, 0),  # North
-    1: (0, 1),  # East
-    2: (1, 0),  # South
-    3: (0, -1),  # West
+    0: (-1, 0),
+    1: (0, 1),
+    2: (1, 0),
+    3: (0, -1),
 }
 
-# Define mapping for easier direction changes
-# (current_direction, turn_action) -> new_direction
-# Actions: 'F' (Forward), 'R' (Right), 'L' (Left)
 TURN_MAP = {
     (0, "R"): 1,
-    (0, "L"): 3,  # Facing North
+    (0, "L"): 3,
     (1, "R"): 2,
-    (1, "L"): 0,  # Facing East
+    (1, "L"): 0,
     (2, "R"): 3,
-    (2, "L"): 1,  # Facing South
+    (2, "L"): 1,
     (3, "R"): 0,
-    (3, "L"): 2,  # Facing West
+    (3, "L"): 2,
 }
 
 
+# Heuristic function
 def h_euclidean(cell1_pos, cell2_pos):
-    """
-    Heuristic function: Euclidean distance between two cell positions.
-    """
     x1, y1 = cell1_pos
     x2, y2 = cell2_pos
     return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
@@ -47,11 +39,9 @@ class RandomMazeGenerator:
         # Initialize grid with all walls (1)
         self.grid = np.ones((self.rows, self.cols), dtype=int)
 
+    # Generates a maze using Randomized DFS algorithm.
     def generate(self, start_r=None, start_c=None):
-        """
-        Generates a maze using Randomized DFS algorithm.
-        All cells are initially walls. We carve paths.
-        """
+
         if start_r is None:
             start_r = random.randint(0, self.rows - 1)
         if start_c is None:
@@ -60,7 +50,7 @@ class RandomMazeGenerator:
         stack = [(start_r, start_c)]
         visited = set()
         visited.add((start_r, start_c))
-        self.grid[start_r][start_c] = 0  # Carve out start
+        self.grid[start_r][start_c] = 0
 
         while stack:
             current_r, current_c = stack[-1]
@@ -76,13 +66,13 @@ class RandomMazeGenerator:
                 ):
                     unvisited_neighbors.append(
                         ((nr, nc), (current_r + dr // 2, current_c + dc // 2))
-                    )  # (neighbor_pos, wall_to_carve_pos)
+                    )
 
             if unvisited_neighbors:
                 (next_r, next_c), (wall_r, wall_c) = random.choice(unvisited_neighbors)
 
-                self.grid[wall_r][wall_c] = 0  # Carve wall in between
-                self.grid[next_r][next_c] = 0  # Carve neighbor
+                self.grid[wall_r][wall_c] = 0
+                self.grid[next_r][next_c] = 0
                 visited.add((next_r, next_c))
                 stack.append((next_r, next_c))
             else:
@@ -100,19 +90,13 @@ class MazeSolver:
         self.end_pos = end_pos
 
         # Start direction: Default to North (0)
-        self.start_node = (self.start_pos, start_dir)  # (position, direction)
+        self.start_node = (self.start_pos, start_dir)
 
     def is_valid_move(self, r, c):
         """Checks if a cell is within bounds and not a wall."""
         return 0 <= r < self.rows and 0 <= c < self.cols and self.maze_grid[r][c] == 0
 
     def get_neighbors(self, current_node):
-        """
-        Generates valid neighboring nodes based on movement constraints.
-        A node is (position, direction).
-        Allowed: Move Forward, Turn Right+Move Forward, Turn Left+Move Forward.
-        Returns a list of (next_full_node, action_description) tuples.
-        """
         (r, c), current_direction = current_node
         neighbors = []
 
@@ -144,16 +128,13 @@ class MazeSolver:
         return neighbors
 
     def solve_maze_a_star(self):
-        """
-        Solves the maze using the A* algorithm with directional constraints.
-        A node in this context is (position, direction).
-        """
+
         open_set = PriorityQueue()
         open_set.put((0, self.start_node))  # (f_score, node)
 
         came_from = {}
 
-        # Initialize g_score and f_score for all possible (position, direction) nodes
+        # Initialize g_score and f_score for all the possible direction nodes
         g_score = {
             ((r, c), d): float("inf")
             for r in range(self.rows)
@@ -178,17 +159,15 @@ class MazeSolver:
                 path = []
                 current_path_node = current_node
                 while current_path_node != self.start_node:
-                    path.append(
-                        current_path_node[0]
-                    )  # Store only position for path visualization
+                    path.append(current_path_node[0])
                     current_path_node = came_from[current_path_node]
                 path.append(self.start_node[0])
-                return path[::-1]  # Reverse to get path from start to end
+                return path[::-1]
 
             for next_full_node, action_desc in self.get_neighbors(current_node):
                 next_pos, next_direction = next_full_node
 
-                tentative_g_score = g_score[current_node] + 1  # Each valid move costs 1
+                tentative_g_score = g_score[current_node] + 1
 
                 if tentative_g_score < g_score[next_full_node]:
                     came_from[next_full_node] = current_node
@@ -206,8 +185,8 @@ class MazeApp:
         self.master = master
         master.title("Modern A* Maze Solver")
 
-        self.rows = 21  # Must be odd for proper DFS maze generation
-        self.cols = 21  # Must be odd
+        self.rows = 21
+        self.cols = 21
         self.maze_grid = None
         self.path = None
         self.start_pos = None
@@ -220,7 +199,7 @@ class MazeApp:
         self.canvas_widget = self.canvas.get_tk_widget()
         self.canvas_widget.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-        self.button_frame = tk.Frame(master, bg="#444444")  # Darker button frame
+        self.button_frame = tk.Frame(master, bg="#000000")
         self.button_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.generate_button = tk.Button(
@@ -231,7 +210,7 @@ class MazeApp:
             bg="#6A5ACD",
             fg="white",
             relief=tk.RAISED,
-            bd=3,  # Modern button style
+            bd=3,
         )
         self.generate_button.pack(side=tk.LEFT, padx=10, pady=10, expand=True)
 
@@ -243,7 +222,7 @@ class MazeApp:
             bg="#20B2AA",
             fg="white",
             relief=tk.RAISED,
-            bd=3,  # Modern button style
+            bd=3,
         )
         self.solve_button.pack(side=tk.LEFT, padx=10, pady=10, expand=True)
 
@@ -255,19 +234,17 @@ class MazeApp:
             bg="#DC143C",
             fg="white",
             relief=tk.RAISED,
-            bd=3,  # Modern button style
+            bd=3,
         )
         self.clear_button.pack(side=tk.LEFT, padx=10, pady=10, expand=True)
 
-        self.generate_and_plot_maze()  # Generate initial maze on startup
+        self.generate_and_plot_maze()
 
     def generate_and_plot_maze(self):
         generator = RandomMazeGenerator(self.rows, self.cols)
         self.maze_grid = generator.generate()
-        self.path = None  # Clear path when a new maze is generated
+        self.path = None
 
-        # Pick random start and end points that are walkable (0)
-        # Ensure start and end are distinct
         walkable_cells = [
             (r, c)
             for r in range(self.rows)
@@ -283,7 +260,6 @@ class MazeApp:
 
         self.start_pos = random.choice(walkable_cells)
 
-        # Ensure end_pos is different from start_pos
         self.end_pos = random.choice(walkable_cells)
         while self.end_pos == self.start_pos:
             self.end_pos = random.choice(walkable_cells)
@@ -293,10 +269,7 @@ class MazeApp:
     def plot_maze(self):
         self.ax.clear()
 
-        # Modern colormap for walls/paths
-        cmap = plt.cm.colors.ListedColormap(
-            ["#EEEEEE", "#333333"]
-        )  # Light grey for path, Dark grey for wall
+        cmap = plt.cm.colors.ListedColormap(["#EEEEEE", "#333333"])
         bounds = [-0.5, 0.5, 1.5]
         norm = plt.cm.colors.BoundaryNorm(bounds, cmap.N)
 
@@ -306,28 +279,20 @@ class MazeApp:
             norm=norm,
             origin="upper",
             extent=[-0.5, self.cols - 0.5, self.rows - 0.5, -0.5],
-            interpolation="nearest",  # Ensures sharp cell edges
+            interpolation="nearest",
         )
 
-        # Remove default ticks and labels for a cleaner look
         self.ax.set_xticks([])
         self.ax.set_yticks([])
         self.ax.set_xticklabels([])
         self.ax.set_yticklabels([])
 
-        # Optional: Fine-tune grid if desired, but often cleaner without it
-        # self.ax.set_xticks(np.arange(-0.5, self.cols, 1), minor=True)
-        # self.ax.set_yticks(np.arange(-0.5, self.rows, 1), minor=True)
-        # self.ax.grid(which="minor", color="#555555", linestyle="-", linewidth=0.5, alpha=0.5) # Darker grid
-        # self.ax.tick_params(which="minor", size=0)
-
-        # Plot start and end points with custom markers
         self.ax.plot(
             self.start_pos[1],
             self.start_pos[0],
             marker=">",
             markersize=12,
-            color="#FFD700",  # Gold arrow for start
+            color="#11005036",
             label="Start",
             markeredgewidth=1.5,
             markeredgecolor="black",
@@ -337,13 +302,12 @@ class MazeApp:
             self.end_pos[0],
             marker="X",
             markersize=12,
-            color="#00FFFF",  # Cyan X for end
+            color="#00FFFF",
             label="End",
             markeredgewidth=1.1,
             markeredgecolor="black",
         )
 
-        # Plot the path if it exists
         if self.path:
             path_rows = [p[0] for p in self.path]
             path_cols = [p[1] for p in self.path]
@@ -355,24 +319,21 @@ class MazeApp:
                 alpha=0.8,
                 solid_capstyle="round",
             )
-            # Add markers only for start/end of path (already done)
-            # Or add smaller dots along path for emphasis
             self.ax.plot(
                 path_cols,
                 path_rows,
                 "o",
                 markersize=4,
                 color="#FF8C00",
-                alpha=0.6,  # Smaller dots along path
+                alpha=0.6,
             )
 
         self.ax.set_title(
             "A* Maze Solver (Modern Look)", color="white", fontsize=14, pad=15
         )
-        self.ax.set_aspect("equal")  # Ensure square cells
-        self.ax.invert_yaxis()  # Origin at top-left
-        # self.ax.legend(loc='lower left', frameon=False, labelcolor='white') # Optional legend
-        self.fig.tight_layout()  # Adjust layout to prevent labels overlapping
+        self.ax.set_aspect("equal")
+        self.ax.invert_yaxis()
+        self.fig.tight_layout()
         self.canvas.draw()
 
     def solve_and_plot_path(self):
@@ -385,20 +346,18 @@ class MazeApp:
 
         if self.path:
             print("\nPath found! Length:", len(self.path))
-            # print("Path (rows, cols):", self.path) # Can be very long for large mazes
-            self.plot_maze()  # Re-plot to show the path
+            self.plot_maze()
         else:
             messagebox.showinfo(
                 "No Path", "No path could be found between the start and end points."
             )
-            self.plot_maze()  # Re-plot to ensure current maze is shown without old path
+            self.plot_maze()
 
     def clear_path(self):
         self.path = None
-        self.plot_maze()  # Re-plot the maze without the path
+        self.plot_maze()
 
 
-# --- Main execution ---
 if __name__ == "__main__":
     root = tk.Tk()
     app = MazeApp(root)
